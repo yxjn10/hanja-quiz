@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한자 쓰기 연습</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;900&family=Noto+Sans+KR:wght@300;400;500&display=swap');
+
+  :root {
+    --ink: #1a1209;
+    --paper: #f5f0e8;
+    --paper-dark: #ede5d0;
+    --accent: #8b2020;
+    --accent-light: #c94040;
+    --gold: #c8972a;
+    --grid: #c5b99a;
+    --shadow: rgba(26, 18, 9, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px;
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(200, 151, 42, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 90%, rgba(139, 32, 32, 0.06) 0%, transparent 50%);
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .logo {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: var(--ink);
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  .logo span {
+    color: var(--accent);
+  }
+
+  .subtitle {
+    margin-top: 6px;
+    font-size: 0.85rem;
+    color: #7a6e5e;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-weight: 300;
+  }
+
+  .divider {
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 12px auto 0;
+  }
+
+  .card {
+    background: white;
+    border-radius: 2px;
+    box-shadow: 0 4px 32px var(--shadow), 0 1px 4px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 560px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--gold), var(--accent));
+  }
+
+  /* START SCREEN */
+  #startScreen {
+    padding: 64px 48px;
+    text-align: center;
+  }
+
+  .start-hanja {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 5rem;
+    font-weight: 900;
+    color: var(--ink);
+    opacity: 0.12;
+    line-height: 1;
+    margin-bottom: 24px;
+    letter-spacing: -4px;
+  }
+
+  .start-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .start-desc {
+    color: #7a6e5e;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    margin-bottom: 36px;
+  }
+
+  /* QUIZ SCREEN */
+  #quizScreen { display: none; }
+
+  .quiz-header {
+    background: var(--paper-dark);
+    padding: 28px 36px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 1px solid var(--grid);
+  }
+
+  .hint-badge {
+    background: var(--accent);
+    color: white;
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 2px;
+    font-weight: 500;
+  }
+
+  .hanja-clue {
+    flex: 1;
+  }
+
+  .hanja-reading {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .hanja-reading .meaning {
+    color: var(--accent);
+  }
+
+  .hanja-reading .sound {
+    color: var(--gold);
+    font-size: 1.5rem;
+  }
+
+  .quiz-body {
+    padding: 28px 36px;
+  }
+
+  .canvas-label {
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    color: #9a8e7e;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  .canvas-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+  }
+
+  #drawCanvas {
+    width: 100%;
+    aspect-ratio: 1/1;
+    border: 1.5px solid var(--grid);
+    border-radius: 2px;
+    cursor: crosshair;
+    display: block;
+    background: white;
+    touch-action: none;
+  }
+
+  /* 田字格 grid lines */
+  .grid-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .grid-overlay::before,
+  .grid-overlay::after {
+    content: '';
+    position: absolute;
+    background: var(--grid);
+    opacity: 0.35;
+  }
+
+  .grid-overlay::before {
+    left: 50%; top: 0; bottom: 0;
+    width: 1px;
+    transform: translateX(-50%);
+  }
+
+  .grid-overlay::after {
+    top: 50%; left: 0; right: 0;
+    height: 1px;
+    transform: translateY(-50%);
+  }
+
+  .canvas-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    align-items: center;
+  }
+
+  .stroke-label {
+    font-size: 0.75rem;
+    color: #9a8e7e;
+    letter-spacing: 1px;
+  }
+
+  .stroke-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1.5px solid var(--grid);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .stroke-btn:hover { transform: scale(1.15); }
+  .stroke-btn.active { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* RESULT SCREEN */
+  #resultScreen { display: none; }
+
+  .result-header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 32px 36px;
+    text-align: center;
+  }
+
+  .answer-hanja {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 6rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--paper);
+    text-shadow: 0 2px 20px rgba(200,151,42,0.4);
+    animation: revealChar 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  @keyframes revealChar {
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .answer-label {
+    margin-top: 12px;
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.1rem;
+    color: var(--gold);
+    letter-spacing: 4px;
+  }
+
+  .result-body {
+    padding: 28px 36px;
+    text-align: center;
+  }
+
+  .your-drawing-label {
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    color: #9a8e7e;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  #resultPreview {
+    width: 140px;
+    height: 140px;
+    border: 1.5px solid var(--grid);
+    margin: 0 auto 24px;
+    display: block;
+    border-radius: 2px;
+    background: white;
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 2px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    width: 100%;
+    font-size: 1rem;
+    padding: 16px;
+  }
+
+  .btn-primary:hover {
+    background: var(--accent-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(139, 32, 32, 0.3);
+  }
+
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1.5px solid var(--grid);
+    flex: 1;
+    font-size: 0.85rem;
+  }
+
+  .btn-secondary:hover {
+    background: var(--paper-dark);
+    border-color: #a09080;
+  }
+
+  .btn-gold {
+    background: var(--gold);
+    color: white;
+    width: 100%;
+    font-size: 1rem;
+    padding: 16px;
+  }
+
+  .btn-gold:hover {
+    background: #d4a830;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(200, 151, 42, 0.35);
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  /* counter */
+  .counter {
+    font-size: 0.78rem;
+    color: #9a8e7e;
+    text-align: right;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+
+  /* brush size */
+  .brush-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .brush-size-label {
+    font-size: 0.75rem;
+    color: #9a8e7e;
+    letter-spacing: 1px;
+  }
+
+  input[type=range] {
+    width: 100px;
+    accent-color: var(--accent);
+  }
+
+  .eraser-btn {
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    background: transparent;
+    border: 1px solid var(--grid);
+    border-radius: 20px;
+    cursor: pointer;
+    color: #7a6e5e;
+    transition: all 0.15s;
+    font-family: 'Noto Sans KR', sans-serif;
+    letter-spacing: 1px;
+  }
+
+  .eraser-btn:hover { background: var(--paper-dark); }
+  .eraser-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">한<span>자</span>練習</div>
+  <div class="subtitle">Hanja Writing Practice</div>
+  <div class="divider"></div>
+</header>
+
+<div class="card">
+
+  <!-- START SCREEN -->
+  <div id="startScreen">
+    <div class="start-hanja">漢字</div>
+    <div class="start-title">한자 쓰기 퀴즈</div>
+    <p class="start-desc">
+      뜻과 음을 보고 한자를 써보세요.<br>
+      총 <strong>67</strong>개의 한자 중 랜덤으로 출제됩니다.
+    </p>
+    <button class="btn btn-primary" onclick="startQuiz()">✦ 문제 내기</button>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quizScreen">
+    <div class="quiz-header">
+      <div class="hint-badge">문제</div>
+      <div class="hanja-clue">
+        <div class="hanja-reading">
+          <span class="meaning" id="meaning">—</span>
+          &nbsp;
+          <span class="sound" id="sound">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="quiz-body">
+      <div class="canvas-label">이 한자를 써 보세요</div>
+      <div class="canvas-wrapper">
+        <canvas id="drawCanvas"></canvas>
+        <div class="grid-overlay"></div>
+      </div>
+      <div class="brush-row">
+        <span class="brush-size-label">굵기</span>
+        <input type="range" id="brushSize" min="2" max="28" value="8">
+        <button class="eraser-btn" id="eraserToggle" onclick="toggleEraser()">지우개</button>
+        <div style="flex:1"></div>
+        <div style="display:flex;gap:6px;">
+          <div class="stroke-btn active" style="background:#1a1209" onclick="setColor('#1a1209',this)" title="먹색"></div>
+          <div class="stroke-btn" style="background:#8b2020" onclick="setColor('#8b2020',this)" title="붉은색"></div>
+          <div class="stroke-btn" style="background:#2a4d8b" onclick="setColor('#2a4d8b',this)" title="남색"></div>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:18px;">
+        <button class="btn btn-secondary" onclick="clearCanvas()">🗑 지우기</button>
+        <button class="btn btn-primary" style="flex:2;" onclick="showResult()">완료 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="resultScreen">
+    <div class="result-header">
+      <div class="answer-hanja" id="answerHanja">—</div>
+      <div class="answer-label" id="answerLabel">—</div>
+    </div>
+    <div class="result-body">
+      <div class="your-drawing-label">내가 쓴 한자</div>
+      <canvas id="resultPreview"></canvas>
+      <button class="btn btn-gold" onclick="nextQuiz()">✦ 새 문제 내기</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const hanjaList = [
+  {char:'茶',meaning:'차',sound:'다'},{char:'事',meaning:'일',sound:'사'},{char:'易',meaning:'바꾸다',sound:'역'},
+  {char:'地',meaning:'처지',sound:'지'},{char:'思',meaning:'생각하다',sound:'사'},{char:'之',meaning:'어조사',sound:'지'},
+  {char:'大',meaning:'크다',sound:'대'},{char:'晩',meaning:'늦다',sound:'만'},{char:'成',meaning:'이루다',sound:'성'},
+  {char:'拔',meaning:'뽑다',sound:'발'},{char:'本',meaning:'근본',sound:'본'},{char:'百',meaning:'일백',sound:'백'},
+  {char:'折',meaning:'꺾이다',sound:'절'},{char:'不',meaning:'아니다',sound:'불'},{char:'屈',meaning:'굽히다',sound:'굴'},
+  {char:'及',meaning:'미치다',sound:'급'},{char:'必',meaning:'반드시',sound:'필'},{char:'正',meaning:'바르다',sound:'정'},
+  {char:'下',meaning:'아래',sound:'하'},{char:'明',meaning:'밝다',sound:'명'},{char:'烏',meaning:'까마귀',sound:'오'},
+  {char:'飛',meaning:'날다',sound:'비'},{char:'梨',meaning:'배',sound:'이'},{char:'同',meaning:'같다',sound:'동'},
+  {char:'紅',meaning:'붉다',sound:'홍'},{char:'足',meaning:'발',sound:'족'},{char:'凍',meaning:'얼다',sound:'동'},
+  {char:'放',meaning:'놓다',sound:'방'},{char:'尿',meaning:'오줌',sound:'뇨'},{char:'吾',meaning:'나',sound:'오'},
+  {char:'三',meaning:'셋',sound:'삼'},{char:'尺',meaning:'자',sound:'척'},{char:'者',meaning:'사람',sound:'자'},
+  {char:'目',meaning:'눈',sound:'목'},{char:'丁',meaning:'고무래',sound:'정'},{char:'堂',meaning:'집',sound:'당'},
+  {char:'狗',meaning:'개',sound:'구'},{char:'風',meaning:'바람',sound:'풍'},{char:'月',meaning:'달',sound:'월'},
+  {char:'蛇',meaning:'뱀',sound:'사'},{char:'添',meaning:'더하다',sound:'첨'},{char:'翁',meaning:'늙은이',sound:'옹'},
+  {char:'馬',meaning:'말',sound:'마'},{char:'刻',meaning:'새기다',sound:'각'},{char:'舟',meaning:'배',sound:'주'},
+  {char:'求',meaning:'구하다',sound:'구'},{char:'公',meaning:'공',sound:'공'},{char:'移',meaning:'옮기다',sound:'이'},
+  {char:'山',meaning:'산',sound:'산'},{char:'四',meaning:'넷',sound:'사'},{char:'雪',meaning:'눈',sound:'설'},
+  {char:'功',meaning:'공',sound:'공'},{char:'伯',meaning:'맏',sound:'백'},{char:'牙',meaning:'어금니',sound:'아'},
+  {char:'絃',meaning:'줄',sound:'현'},{char:'咸',meaning:'다',sound:'함'},{char:'差',meaning:'사신보내다',sound:'차'},
+  {char:'使',meaning:'사신',sound:'사'},{char:'指',meaning:'가리키다',sound:'지'},{char:'鹿',meaning:'사슴',sound:'록'},
+  {char:'人',meaning:'사람',sound:'인'},{char:'虎',meaning:'호랑이',sound:'호'},{char:'面',meaning:'방향',sound:'면'},
+  {char:'夜',meaning:'밤',sound:'야'},{char:'行',meaning:'다니다',sound:'행'},{char:'臥',meaning:'눕다',sound:'와'},
+  {char:'亡',meaning:'잃다',sound:'망'},{char:'衣',meaning:'옷',sound:'의'}
+];
+
+let current = null;
+let drawing = false;
+let erasing = false;
+let strokeColor = '#1a1209';
+let usedSet = new Set();
+let lastX, lastY;
+
+const canvas = document.getElementById('drawCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  // save existing drawing
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.putImageData(imgData, 0, 0);
+}
+
+window.addEventListener('resize', () => { clearCanvas(); });
+
+function initCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  let clientX, clientY;
+  if (e.touches) {
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
+  return {
+    x: clientX - rect.left,
+    y: clientY - rect.top
+  };
+}
+
+canvas.addEventListener('mousedown', e => { drawing = true; const p = getPos(e); lastX=p.x; lastY=p.y; draw(p); });
+canvas.addEventListener('mousemove', e => { if (!drawing) return; const p = getPos(e); draw(p); lastX=p.x; lastY=p.y; });
+canvas.addEventListener('mouseup', () => drawing = false);
+canvas.addEventListener('mouseleave', () => drawing = false);
+canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; const p = getPos(e); lastX=p.x; lastY=p.y; draw(p); }, {passive:false});
+canvas.addEventListener('touchmove', e => { e.preventDefault(); if(!drawing) return; const p = getPos(e); draw(p); lastX=p.x; lastY=p.y; }, {passive:false});
+canvas.addEventListener('touchend', () => drawing = false);
+
+function draw(p) {
+  const size = parseInt(document.getElementById('brushSize').value);
+  ctx.globalCompositeOperation = erasing ? 'destination-out' : 'source-over';
+  ctx.strokeStyle = erasing ? 'rgba(0,0,0,1)' : strokeColor;
+  ctx.lineWidth = erasing ? size * 2 : size;
+  ctx.beginPath();
+  ctx.moveTo(lastX ?? p.x, lastY ?? p.y);
+  ctx.lineTo(p.x, p.y);
+  ctx.stroke();
+  if (lastX === undefined) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, (erasing ? size * 2 : size) / 2, 0, Math.PI * 2);
+    ctx.fillStyle = erasing ? 'rgba(0,0,0,1)' : strokeColor;
+    ctx.fill();
+  }
+}
+
+function clearCanvas() {
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function setColor(c, btn) {
+  strokeColor = c;
+  erasing = false;
+  document.getElementById('eraserToggle').classList.remove('active');
+  document.querySelectorAll('.stroke-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function toggleEraser() {
+  erasing = !erasing;
+  document.getElementById('eraserToggle').classList.toggle('active', erasing);
+  if (erasing) {
+    document.querySelectorAll('.stroke-btn').forEach(b => b.classList.remove('active'));
+  } else {
+    document.querySelector('.stroke-btn:first-of-type') && (document.querySelectorAll('.stroke-btn')[0].classList.add('active'));
+  }
+}
+
+function pickRandom() {
+  if (usedSet.size >= hanjaList.length) usedSet.clear();
+  let idx;
+  do { idx = Math.floor(Math.random() * hanjaList.length); } while (usedSet.has(idx));
+  usedSet.add(idx);
+  return hanjaList[idx];
+}
+
+function startQuiz() {
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('resultScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  current = pickRandom();
+  document.getElementById('meaning').textContent = current.meaning;
+  document.getElementById('sound').textContent = current.sound;
+  setTimeout(() => {
+    initCanvas();
+    clearCanvas();
+  }, 50);
+}
+
+function showResult() {
+  // copy canvas to preview
+  const preview = document.getElementById('resultPreview');
+  preview.width = 140;
+  preview.height = 140;
+  const pCtx = preview.getContext('2d');
+  pCtx.drawImage(canvas, 0, 0, 140, 140);
+
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('answerHanja').textContent = current.char;
+  document.getElementById('answerLabel').textContent = current.meaning + ' ' + current.sound;
+
+  // restart animation
+  const el = document.getElementById('answerHanja');
+  el.style.animation = 'none';
+  el.offsetHeight; // reflow
+  el.style.animation = 'revealChar 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+
+  document.getElementById('resultScreen').style.display = 'block';
+}
+
+function nextQuiz() {
+  document.getElementById('resultScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  current = pickRandom();
+  document.getElementById('meaning').textContent = current.meaning;
+  document.getElementById('sound').textContent = current.sound;
+  clearCanvas();
+  erasing = false;
+  document.getElementById('eraserToggle').classList.remove('active');
+  document.querySelectorAll('.stroke-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+  strokeColor = '#1a1209';
+}
+</script>
+</body>
+</html>
